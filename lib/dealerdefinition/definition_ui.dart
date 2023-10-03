@@ -63,22 +63,23 @@ class _MobileContentState extends State<MobileContent> {
         appBar: AppBar(
           title: Text('Dealer Definition'),
           bottom: const TabBar(
+            isScrollable: true,
             tabs: [
               Tab(
                 text: 'General',
-                icon: Icon(Icons.ac_unit),
+                icon: Icon(Icons.settings_applications),
               ),
               Tab(
                 text: 'Fertilizer',
-                icon: Icon(Icons.free_breakfast),
+                icon: Icon(Icons.filter_alt),
               ),
               Tab(
                 text: 'Valve default',
-                icon: Icon(Icons.file_download_rounded),
+                icon: Icon(Icons.schema),
               ),
               Tab(
                 text: 'Memory',
-                icon: Icon(Icons.memory),
+                icon: Icon(Icons.sd_storage),
               ),
             ],
           ),
@@ -157,8 +158,7 @@ class _MobileContentState extends State<MobileContent> {
                                 '${Listofvalue?[index].dropdownValues}',
                                 ',',
                               ),
-
-                              // setValue: dealerviewmodel.updatevalue,
+                              // setValue: Listofvalue?[index].description = '',
                             ),
                           ),
                         ),
@@ -193,7 +193,7 @@ class _MobileContentState extends State<MobileContent> {
                                   if (value == null || value.isEmpty) {
                                     return 'Warranty is required';
                                   } else {
-                                    // dealerviewmodel.updatevalue;
+                                    // Listofvalue?[index].parameter = value;
                                   }
                                   return null;
                                 },
