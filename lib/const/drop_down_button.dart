@@ -22,6 +22,8 @@ class MyDropDown extends StatefulWidget {
 class _MyDropDownState extends State<MyDropDown> {
   @override
   Widget build(BuildContext context) {
+    print(widget.initialValue);
+
     return Container(
       // width: double.infinity,
       decoration: const BoxDecoration(
@@ -36,6 +38,7 @@ class _MyDropDownState extends State<MyDropDown> {
         underline: Container(),
         // Initial Value
         value: widget.initialValue ?? widget.itemList[0],
+
         isExpanded: true,
         // Down Arrow Icon
         icon: Padding(
@@ -46,13 +49,14 @@ class _MyDropDownState extends State<MyDropDown> {
         items: widget.itemList.map((String items) {
           return DropdownMenuItem(
             value: items,
-            child: Container(
-                padding: EdgeInsets.only(left: 10), child: Text(items)),
+            child: Container(padding: EdgeInsets.only(left: 10), child: Text(items)),
           );
         }).toList(),
 
         onChanged: (String? newValue) {
-          widget.initialValue = newValue!;
+          setState(() {
+            widget.initialValue = newValue!;
+          });
         },
       ),
     );

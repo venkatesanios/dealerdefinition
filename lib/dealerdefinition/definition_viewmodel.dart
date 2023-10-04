@@ -1,8 +1,9 @@
 import 'dart:convert';
 import 'package:dealer_definition/dealerdefinition/definition_model.dart';
 import 'package:dealer_definition/service/http_services.dart';
+import 'package:flutter/material.dart';
 
-class GetDatafromDefinition {
+class GetDatafromDefinition extends ChangeNotifier{
   Future<Map<String, List<DealerDefinition>>> fetchData() async {
     // final response = await http.get(Uri.parse(apiUrl));
     Map<String, Object> body = {
@@ -14,6 +15,7 @@ class GetDatafromDefinition {
     // print("response $response");
     if (response.isNotEmpty) {
       final jsonData = json.decode(response);
+      
       final data = jsonData['data'];
 
       final generalList = (data['General'] as List)

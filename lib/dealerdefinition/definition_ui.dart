@@ -33,9 +33,34 @@ class MobileContent extends StatefulWidget {
 
 class _MobileContentState extends State<MobileContent> {
   final _formKeydealer = GlobalKey<FormState>();
-
+  String? dropdowninitialValue;
   final GetDatafromDefinition apiService = GetDatafromDefinition();
-  Map<String, List<DealerDefinition>> data = {};
+  DealerDefinition data = DealerDefinition();
+
+  final jsondata = {
+    "code": 200,
+    "message": "Dealer definition listed successfully",
+    "data": {
+      "General": [
+        {"dealerDefinitionId": 1, "categoryId": 2, "widgetTypeId": 1, "parameter": "Use USA units", "description": "Use USA Localization Metrics (Gallons, Inches, Pounds, etc)", "iconCodePoint": 0, "iconFontFamily": "", "dropdownValues": "Galens, Inchecs, Pounds", "value": ""},
+        {"dealerDefinitionId": 2, "categoryId": 2, "widgetTypeId": 1, "parameter": "Water accumulation unit", "description": "Water accumulation unit", "iconCodePoint": 0, "iconFontFamily": "", "dropdownValues": "m3", "value": ""},
+        {"dealerDefinitionId": 3, "categoryId": 2, "widgetTypeId": 2, "parameter": "Cycles", "description": "Enable repeating cycles", "iconCodePoint": 0, "iconFontFamily": "", "dropdownValues": "Yes", "value": ""}
+      ],
+      "Fertilization": [
+        {"dealerDefinitionId": 4, "categoryId": 4, "widgetTypeId": 2, "parameter": "Local Fert mode Litter/m3", "description": "Enable Local Fert mode  ", "iconCodePoint": 0, "iconFontFamily": "", "dropdownValues": "Yes", "value": ""},
+        {"dealerDefinitionId": 9, "categoryId": 4, "widgetTypeId": 3, "parameter": "Default fert mode", "description": "Default Fertigation dosage mode", "iconCodePoint": 0, "iconFontFamily": "", "dropdownValues": "None,L/m3,mm:ss/m3,sec/min,L/min,L prop,time ,L bulk", "value": ""}
+      ],
+      "Valve defaults": [
+        {"dealerDefinitionId": 5, "categoryId": 3, "widgetTypeId": 1, "parameter": "Default nomonal flow", "description": "Default nomonal flow for all valves", "iconCodePoint": 0, "iconFontFamily": "", "dropdownValues": "100", "value": ""},
+        {"dealerDefinitionId": 6, "categoryId": 3, "widgetTypeId": 3, "parameter": "Default Dosage mode", "description": "Default Dosage mode for all valves in sytem", "iconCodePoint": 0, "iconFontFamily": "", "dropdownValues": "hh:mm:ss,m3", "value": ""},
+        {"dealerDefinitionId": 10, "categoryId": 3, "widgetTypeId": 1, "parameter": "fill time", "description": "Fill time for all valves(in minutes)", "iconCodePoint": 0, "iconFontFamily": "", "dropdownValues": "15", "value": ""}
+      ],
+      "Memory allocations": [
+        {"dealerDefinitionId": 7, "categoryId": 5, "widgetTypeId": 1, "parameter": "Programs", "description": "Total number of programs to allowed the system", "iconCodePoint": 0, "iconFontFamily": "", "dropdownValues": "100", "value": ""},
+        {"dealerDefinitionId": 8, "categoryId": 5, "widgetTypeId": 1, "parameter": "Groups", "description": "Total number of valve in group allowed in the system", "iconCodePoint": 0, "iconFontFamily": "", "dropdownValues": "99", "value": ""}
+      ]
+    }
+  };
 
   @override
   void initState() {
@@ -44,15 +69,16 @@ class _MobileContentState extends State<MobileContent> {
   }
 
   Future<void> fetchData() async {
-    try {
-      final result = await apiService.fetchData();
-      setState(() {
-        data = result;
-      });
-    } catch (e) {
-      // Handle error
-      print('Error: $e');
-    }
+    data = DealerDefinition.fromJson(jsondata);
+    // try {
+    //   final result = await apiService.fetchData();
+    //   setState(() {
+    //     // data = result;
+    //   });
+    // } catch (e) {
+    //   // Handle error
+    //   print('Error: $e');
+    // }
   }
 
   @override
@@ -86,40 +112,34 @@ class _MobileContentState extends State<MobileContent> {
         ),
         body: Padding(
           padding: const EdgeInsets.only(left: 10, right: 10, bottom: 70),
-          child: TabBarView(
-            children: [
-              buildTab('General', false),
-              buildTab('Fertilizer', false),
-              buildTab('Valve Defaults', false),
-              buildTab('Memory', false),
-            ],
+          child: Form(
+            key: _formKeydealer,
+            child: TabBarView(
+              children: [
+                buildTab('General', false,data.data?.general),
+                buildTab('Fertilizer', false,data.data?.fertilization),
+                buildTab('Valve Defaults', false,data.data?.valveDefaults),
+                buildTab('Memory', false,data.data?.memoryAllocations),
+              ],
+            ),
           ),
         ),
         floatingActionButton: FloatingActionButton(
-          onPressed: () async {},
+          onPressed: () async {
+            final reqJson = data.toJson();
+
+            print(reqJson);
+          },
           child: Icon(Icons.send),
         ),
       ),
     );
   }
 
-  Widget buildTab(String tabTitle, bool titlestatus) {
-    int count = 0;
+  Widget buildTab(String tabTitle, bool titlestatus,List<Fertilization>? Listofvalue) {
+       
+    print(Listofvalue?[0].value);
 
-    List<DealerDefinition>? Listofvalue = [];
-    if (tabTitle == "General") {
-      count = data['General']!.length ?? 0;
-      Listofvalue = data['General'];
-    } else if (tabTitle == "Fertilizer") {
-      count = data['Fertilization']!.length ?? 0;
-      Listofvalue = data['Fertilization'];
-    } else if (tabTitle == "Valve Defaults") {
-      count = data['Valve defaults']!.length ?? 0;
-      Listofvalue = data['Valve defaults'];
-    } else if (tabTitle == "Memory") {
-      count = data['Memory allocations']!.length ?? 0;
-      Listofvalue = data['Memory allocations'];
-    }
     return Column(
       children: [
         titlestatus
@@ -133,117 +153,125 @@ class _MobileContentState extends State<MobileContent> {
                 ),
               )
             : Container(),
-        Flexible(
-          child: Form(
-            key: _formKeydealer,
-            child: ListView.builder(
-              itemCount: count,
-              itemBuilder: (context, index) {
-                if (Listofvalue?[index].widgetType == 'DROPDOWN') {
-                  String selectedDropdownValue = 'hh:mm:ss';
-                  return Column(
-                    children: [
-                      Container(
-                        child: ListTile(
-                          title: Text('${Listofvalue?[index].parameter}'),
-                          subtitle: Text(
-                            'Details: ${Listofvalue?[index].description}',
-                            style: const TextStyle(fontSize: 11),
-                          ),
-                          trailing: Container(
-                            color: Colors.white,
-                            width: 140,
-                            child: MyDropDown(
-                              itemList: StringToList().stringtolist(
-                                '${Listofvalue?[index].dropdownValues}',
-                                ',',
-                              ),
-                              // setValue: Listofvalue?[index].description = '',
-                            ),
-                          ),
+        Expanded(
+          child: ListView.builder(
+            itemCount: Listofvalue?.length ?? 0,
+            itemBuilder: (context, index) {
+              if (Listofvalue?[index].widgetTypeId == 3) {
+                final dropdownlist = StringToList().stringtolist(
+                  '${Listofvalue?[index].dropdownValues}',
+                  ',',
+                );
+                return Column(
+                  children: [
+                    Container(
+                      child: ListTile(
+                        title: Text('${Listofvalue?[index].parameter}'),
+                        subtitle: Text(
+                          'Details: ${Listofvalue?[index].description}',
+                          style: const TextStyle(fontSize: 11),
                         ),
-                      ),
-                      const Padding(
-                        padding: EdgeInsets.only(
-                          left: 70,
-                        ),
-                        child: Divider(
-                          height: 1.0,
-                          color: Colors.grey,
-                        ),
-                      ),
-                    ],
-                  );
-                } else if (Listofvalue?[index].widgetType == 'TEXT') {
-                  return Column(
-                    children: [
-                      Container(
-                        child: ListTile(
-                          title: Text('${Listofvalue?[index].parameter}'),
-                          subtitle: Text(
-                            'Details: ${Listofvalue?[index].description}',
-                            style: const TextStyle(fontSize: 11),
-                          ),
-                          trailing: SizedBox(
-                              width: 50,
-                              child: CustomTextField(
-                                onChanged: (text) {},
-                                initialValue: '0',
-                                validator: (value) {
-                                  if (value == null || value.isEmpty) {
-                                    return 'Warranty is required';
-                                  } else {
-                                    // Listofvalue?[index].parameter = value;
-                                  }
-                                  return null;
-                                },
-                              )),
-                        ),
-                      ),
-                      const Padding(
-                        padding: EdgeInsets.only(
-                          left: 70,
-                        ),
-                        child: Divider(
-                          height: 1.0,
-                          color: Colors.grey,
-                        ),
-                      ),
-                    ],
-                  );
-                } else {
-                  return Column(
-                    children: [
-                      Container(
-                        child: ListTile(
-                          title: Text('${Listofvalue?[index].parameter}'),
-                          subtitle: Text(
-                            'Details: ${Listofvalue?[index].description}',
-                            style: const TextStyle(fontSize: 11),
-                          ),
-                          trailing: MySwitch(
-                            value: false,
-                            onChanged: ((value) {
-                              print(value);
-                              // dealerviewmodel.updatevalue;
-                            }),
+                        trailing: Container(
+                          color: Colors.white,
+                          width: 140,
+                          child: MyDropDown(
+                            key: UniqueKey(),
+                            itemList: dropdownlist,
+                            initialValue: dropdowninitialValue ?? (Listofvalue?[index].value == '' ? dropdownlist[0].toString() : Listofvalue?[index].value),
+                            setValue: (value) {
+                              setState(() {
+                                dropdowninitialValue = value;
+                              });
+                            },
                           ),
                         ),
                       ),
-                      const Padding(
-                        padding: EdgeInsets.only(
-                          left: 70,
+                    ),
+                    const Padding(
+                      padding: EdgeInsets.only(
+                        left: 70,
+                      ),
+                      child: Divider(
+                        height: 1.0,
+                        color: Colors.grey,
+                      ),
+                    ),
+                  ],
+                );
+              } else if (Listofvalue?[index].widgetTypeId == 1) {
+                return Column(
+                  children: [
+                    Container(
+                      child: ListTile(
+                        title: Text('${Listofvalue?[index].parameter}'),
+                        subtitle: Text(
+                          'Details: ${Listofvalue?[index].description}',
+                          style: const TextStyle(fontSize: 11),
                         ),
-                        child: Divider(
-                          height: 1.0,
-                          color: Colors.grey,
+                        trailing: SizedBox(
+                            width: 50,
+                            child: CustomTextField(
+                              onChanged: (text) {},
+                              initialValue: '0',
+                              validator: (value) {
+                                if (value == null || value.isEmpty) {
+                                  return 'Warranty is required';
+                                } else {
+                                  setState(() {
+                                    Listofvalue?[index].value = value;
+                                  });
+                                }
+                                return null;
+                              },
+                            )),
+                      ),
+                    ),
+                    const Padding(
+                      padding: EdgeInsets.only(
+                        left: 70,
+                      ),
+                      child: Divider(
+                        height: 1.0,
+                        color: Colors.grey,
+                      ),
+                    ),
+                  ],
+                );
+              } else {
+                return Column(
+                  children: [
+                    Container(
+                      child: ListTile(
+                        title: Text('${Listofvalue?[index].parameter}'),
+                        subtitle: Text(
+                          'Details: ${Listofvalue?[index].description}',
+                          style: const TextStyle(fontSize: 11),
+                        ),
+                        trailing: MySwitch(
+                          value: Listofvalue?[index].value == '1',
+                          onChanged: ((value) {
+                            print(value);
+                            setState(() {
+                              Listofvalue?[index].value = !value ? '0' : '1';
+                            });
+                            // Listofvalue?[index].value = value;
+                          }),
                         ),
                       ),
-                    ],
-                  );
-                }
-              },
-            ),
+                    ),
+                    const Padding(
+                      padding: EdgeInsets.only(
+                        left: 70,
+                      ),
+                      child: Divider(
+                        height: 1.0,
+                        color: Colors.grey,
+                      ),
+                    ),
+                  ],
+                );
+              }
+            },
           ),
         ),
       ],
