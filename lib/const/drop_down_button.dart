@@ -53,6 +53,7 @@ class _MyDropDownState extends State<MyDropDown> {
 
         onChanged: (String? newValue) {
           widget.initialValue = newValue!;
+          widget.setValue!(newValue);
         },
       ),
     );

@@ -4,7 +4,9 @@ import 'package:dealer_definition/dealerdefinition/definition_model.dart';
 import 'package:dealer_definition/dealerdefinition/definition_viewmodel.dart';
 import 'package:dealer_definition/const/drop_down_button.dart';
 import 'package:dealer_definition/res/string_to_list.dart';
+import 'package:dealer_definition/service/http_services.dart';
 import 'package:flutter/material.dart';
+import 'package:http/http.dart';
 
 class DealerScreen extends StatelessWidget {
   @override
@@ -14,10 +16,8 @@ class DealerScreen extends StatelessWidget {
       home: LayoutBuilder(
         builder: (context, constraints) {
           if (constraints.maxWidth <= 800) {
-            // Render mobile content
             return MobileContent();
           } else {
-            // Render web content
             return MobileContent();
           }
         },
@@ -32,7 +32,7 @@ class MobileContent extends StatefulWidget {
 }
 
 class _MobileContentState extends State<MobileContent> {
-  final _formKeydealer = GlobalKey<FormState>();
+  final _formKey = GlobalKey<FormState>();
 
   final GetDatafromDefinition apiService = GetDatafromDefinition();
   Map<String, List<DealerDefinition>> data = {};
@@ -46,6 +46,7 @@ class _MobileContentState extends State<MobileContent> {
   Future<void> fetchData() async {
     try {
       final result = await apiService.fetchData();
+
       setState(() {
         data = result;
       });
@@ -53,6 +54,12 @@ class _MobileContentState extends State<MobileContent> {
       // Handle error
       print('Error: $e');
     }
+  }
+
+  void updatevalue(String value, int index, String tabTitle) {
+    // _value = value;
+    data[tabTitle]?[index].value = value;
+    // notifyListeners();
   }
 
   @override
@@ -78,7 +85,7 @@ class _MobileContentState extends State<MobileContent> {
                 icon: Icon(Icons.schema),
               ),
               Tab(
-                text: 'Memory',
+                text: 'Memory allocations',
                 icon: Icon(Icons.sd_storage),
               ),
             ],
@@ -91,12 +98,25 @@ class _MobileContentState extends State<MobileContent> {
               buildTab('General', false),
               buildTab('Fertilizer', false),
               buildTab('Valve Defaults', false),
-              buildTab('Memory', false),
+              buildTab('Memory allocations', false),
             ],
           ),
         ),
         floatingActionButton: FloatingActionButton(
-          onPressed: () async {},
+          onPressed: () async {
+            Map<String, Object> body = {
+              "userId": "1",
+              "controllerId": "1",
+              "dealerDefinition": data.toString(),
+              "createUser": "1"
+            };
+
+            final response = await HttpService()
+                .postRequest("createUserDealerDefinition", body);
+            print('response:------------$body');
+            print(data.keys);
+            print('response:------------$response');
+          },
           child: Icon(Icons.send),
         ),
       ),
@@ -107,6 +127,7 @@ class _MobileContentState extends State<MobileContent> {
     int count = 0;
 
     List<DealerDefinition>? Listofvalue = [];
+    Listofvalue.clear();
     if (tabTitle == "General") {
       count = data['General']!.length ?? 0;
       Listofvalue = data['General'];
@@ -116,10 +137,11 @@ class _MobileContentState extends State<MobileContent> {
     } else if (tabTitle == "Valve Defaults") {
       count = data['Valve defaults']!.length ?? 0;
       Listofvalue = data['Valve defaults'];
-    } else if (tabTitle == "Memory") {
+    } else if (tabTitle == "Memory allocations") {
       count = data['Memory allocations']!.length ?? 0;
       Listofvalue = data['Memory allocations'];
     }
+
     return Column(
       children: [
         titlestatus
@@ -135,12 +157,18 @@ class _MobileContentState extends State<MobileContent> {
             : Container(),
         Flexible(
           child: Form(
-            key: _formKeydealer,
+            key: _formKey,
             child: ListView.builder(
               itemCount: count,
               itemBuilder: (context, index) {
-                if (Listofvalue?[index].widgetType == 'DROPDOWN') {
-                  String selectedDropdownValue = 'hh:mm:ss';
+                print('tab title is : - $tabTitle');
+                for (var i = 0; i < Listofvalue!.length; i++) {
+                  print('i $i');
+                  print(Listofvalue[i].value);
+                  print('data:${data[tabTitle]?[i].value}');
+                }
+
+                if (Listofvalue?[index].widgetTypeId == 1) {
                   return Column(
                     children: [
                       Container(
@@ -150,17 +178,26 @@ class _MobileContentState extends State<MobileContent> {
                             'Details: ${Listofvalue?[index].description}',
                             style: const TextStyle(fontSize: 11),
                           ),
-                          trailing: Container(
-                            color: Colors.white,
-                            width: 140,
-                            child: MyDropDown(
-                              itemList: StringToList().stringtolist(
-                                '${Listofvalue?[index].dropdownValues}',
-                                ',',
-                              ),
-                              // setValue: Listofvalue?[index].description = '',
-                            ),
-                          ),
+                          trailing: SizedBox(
+                              width: 50,
+                              child: CustomTextField(
+                                onChanged: (text) {
+                                  data[tabTitle]?[index].value = text;
+                                  Listofvalue?[index].value = text;
+                                },
+                                initialValue: data[tabTitle]?[index].value == ''
+                                    ? '0'
+                                    : data[tabTitle]?[index].value.toString(),
+                                validator: (value) {
+                                  if (value == null || value.isEmpty) {
+                                    return 'Warranty is required';
+                                  } else {
+                                    data[tabTitle]?[index].value = value ?? '0';
+                                    Listofvalue?[index].value = value ?? '0';
+                                  }
+                                  return null;
+                                },
+                              )),
                         ),
                       ),
                       const Padding(
@@ -174,7 +211,9 @@ class _MobileContentState extends State<MobileContent> {
                       ),
                     ],
                   );
-                } else if (Listofvalue?[index].widgetType == 'TEXT') {
+                } else if (Listofvalue?[index].widgetTypeId == 3) {
+                  List<String> dropdownlist = StringToList().stringtolist(
+                      '${Listofvalue?[index].dropdownValues}', ',');
                   return Column(
                     children: [
                       Container(
@@ -184,20 +223,27 @@ class _MobileContentState extends State<MobileContent> {
                             'Details: ${Listofvalue?[index].description}',
                             style: const TextStyle(fontSize: 11),
                           ),
-                          trailing: SizedBox(
-                              width: 50,
-                              child: CustomTextField(
-                                onChanged: (text) {},
-                                initialValue: '0',
-                                validator: (value) {
-                                  if (value == null || value.isEmpty) {
-                                    return 'Warranty is required';
-                                  } else {
-                                    // Listofvalue?[index].parameter = value;
-                                  }
-                                  return null;
-                                },
-                              )),
+                          trailing: Container(
+                            color: Colors.white,
+                            width: 140,
+                            child: DropdownButton(
+                              value: Listofvalue?[index].value == ''
+                                  ? dropdownlist[0].toString()
+                                  : Listofvalue?[index].value.toString(),
+                              items: dropdownlist.map((String items) {
+                                return DropdownMenuItem(
+                                  value: items,
+                                  child: Container(
+                                      padding: EdgeInsets.only(left: 10),
+                                      child: Text(items)),
+                                );
+                              }).toList(),
+                              onChanged: (String? newValue) {
+                                data[tabTitle]?[index].value = newValue!;
+                              },
+                              isExpanded: true,
+                            ),
+                          ),
                         ),
                       ),
                       const Padding(
@@ -222,10 +268,12 @@ class _MobileContentState extends State<MobileContent> {
                             style: const TextStyle(fontSize: 11),
                           ),
                           trailing: MySwitch(
-                            value: false,
+                            value:
+                                Listofvalue?[index].value == '1' ? true : false,
                             onChanged: ((value) {
                               print(value);
                               // dealerviewmodel.updatevalue;
+                              data[tabTitle]?[index].value = value.toString();
                             }),
                           ),
                         ),
