@@ -3,6 +3,7 @@ import 'dart:developer';
 
 import 'package:dealer_definition/const/custom_switch.dart';
 import 'package:dealer_definition/const/custom_text.dart';
+import 'package:dealer_definition/dealerdefinition/dealer_Screen_Web.dart';
 import 'package:dealer_definition/dealerdefinition/definition_model.dart';
 import 'package:dealer_definition/dealerdefinition/definition_viewmodel.dart';
 import 'package:dealer_definition/const/drop_down_button.dart';
@@ -22,7 +23,7 @@ class DealerScreen extends StatelessWidget {
             return MobileContent();
           } else {
             // Render web content
-            return MobileContent();
+            return WebContent();
           }
         },
       ),
@@ -119,8 +120,6 @@ class _MobileContentState extends State<MobileContent> {
             };
             final response = await HttpService()
                 .postRequest("createUserDealerDefinition", body);
-            print('\n\nresponse:------------${body['dealerDefinition']}');
-            print('\n\nresponse:------------$response');
           },
           child: Icon(Icons.send),
         ),
@@ -164,49 +163,23 @@ class _MobileContentState extends State<MobileContent> {
                         trailing: Container(
                           color: Colors.white,
                           width: 140,
-                          // child: DropdownButton(
-                          //   items: dropdownlist.map((String items) {
-                          //     return DropdownMenuItem(
-                          //       value: items,
-                          //       child: Container(
-                          //           padding: EdgeInsets.only(left: 10),
-                          //           child: Text(items)),
-                          //     );
-                          //   }).toList(),
-                          //   onChanged: (value) {
-                          //     setState(() {
-                          //       dropdowninitialValue = value;
-                          //       print('${Listofvalue?[index].value}');
-                          //       Listofvalue?[index].value = value;
-                          //       print('vslue ${value}');
-                          //       print('${Listofvalue?[index].value}');
-                          //     });
-                          //   },
-                          //   value: dropdowninitialValue ??
-                          //       (Listofvalue?[index].value == ''
-                          //           ? dropdownlist[0].toString()
-                          //           : Listofvalue?[index].value),
-                          // ),
-
-                          child: MyDropDown(
-                            key: UniqueKey(),
-                            itemList: dropdownlist,
-                            initialValue: dropdowninitialValue ??
-                                (Listofvalue?[index].value == ''
-                                    ? dropdownlist[0].toString()
-                                    : Listofvalue?[index].value),
-                            setValue: (value) {
+                          child: DropdownButton(
+                            items: dropdownlist.map((String items) {
+                              return DropdownMenuItem(
+                                value: items,
+                                child: Container(
+                                    padding: EdgeInsets.only(left: 10),
+                                    child: Text(items)),
+                              );
+                            }).toList(),
+                            onChanged: (value) {
                               setState(() {
-                                dropdowninitialValue = value;
                                 Listofvalue?[index].value = value;
                               });
                             },
-                            // onChanged: (value) {
-                            //   setState(() {
-                            //     dropdowninitialValue = value;
-                            //     Listofvalue?[index].value = value;
-                            //   });
-                            // },
+                            value: Listofvalue?[index].value == ''
+                                ? dropdownlist[0].toString()
+                                : Listofvalue?[index].value,
                           ),
                         ),
                       ),
@@ -278,7 +251,6 @@ class _MobileContentState extends State<MobileContent> {
                         trailing: MySwitch(
                           value: Listofvalue?[index].value == '1',
                           onChanged: ((value) {
-                            print(value);
                             setState(() {
                               Listofvalue?[index].value = !value ? '0' : '1';
                             });
