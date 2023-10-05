@@ -1,9 +1,13 @@
+import 'dart:convert';
+import 'dart:developer';
+
 import 'package:dealer_definition/const/custom_switch.dart';
 import 'package:dealer_definition/const/custom_text.dart';
 import 'package:dealer_definition/dealerdefinition/definition_model.dart';
 import 'package:dealer_definition/dealerdefinition/definition_viewmodel.dart';
 import 'package:dealer_definition/const/drop_down_button.dart';
 import 'package:dealer_definition/res/string_to_list.dart';
+import 'package:dealer_definition/service/http_services.dart';
 import 'package:flutter/material.dart';
 
 class DealerScreen extends StatelessWidget {
@@ -37,31 +41,6 @@ class _MobileContentState extends State<MobileContent> {
   final GetDatafromDefinition apiService = GetDatafromDefinition();
   DealerDefinition data = DealerDefinition();
 
-  final jsondata = {
-    "code": 200,
-    "message": "Dealer definition listed successfully",
-    "data": {
-      "General": [
-        {"dealerDefinitionId": 1, "categoryId": 2, "widgetTypeId": 1, "parameter": "Use USA units", "description": "Use USA Localization Metrics (Gallons, Inches, Pounds, etc)", "iconCodePoint": 0, "iconFontFamily": "", "dropdownValues": "Galens, Inchecs, Pounds", "value": ""},
-        {"dealerDefinitionId": 2, "categoryId": 2, "widgetTypeId": 1, "parameter": "Water accumulation unit", "description": "Water accumulation unit", "iconCodePoint": 0, "iconFontFamily": "", "dropdownValues": "m3", "value": ""},
-        {"dealerDefinitionId": 3, "categoryId": 2, "widgetTypeId": 2, "parameter": "Cycles", "description": "Enable repeating cycles", "iconCodePoint": 0, "iconFontFamily": "", "dropdownValues": "Yes", "value": ""}
-      ],
-      "Fertilization": [
-        {"dealerDefinitionId": 4, "categoryId": 4, "widgetTypeId": 2, "parameter": "Local Fert mode Litter/m3", "description": "Enable Local Fert mode  ", "iconCodePoint": 0, "iconFontFamily": "", "dropdownValues": "Yes", "value": ""},
-        {"dealerDefinitionId": 9, "categoryId": 4, "widgetTypeId": 3, "parameter": "Default fert mode", "description": "Default Fertigation dosage mode", "iconCodePoint": 0, "iconFontFamily": "", "dropdownValues": "None,L/m3,mm:ss/m3,sec/min,L/min,L prop,time ,L bulk", "value": ""}
-      ],
-      "Valve defaults": [
-        {"dealerDefinitionId": 5, "categoryId": 3, "widgetTypeId": 1, "parameter": "Default nomonal flow", "description": "Default nomonal flow for all valves", "iconCodePoint": 0, "iconFontFamily": "", "dropdownValues": "100", "value": ""},
-        {"dealerDefinitionId": 6, "categoryId": 3, "widgetTypeId": 3, "parameter": "Default Dosage mode", "description": "Default Dosage mode for all valves in sytem", "iconCodePoint": 0, "iconFontFamily": "", "dropdownValues": "hh:mm:ss,m3", "value": ""},
-        {"dealerDefinitionId": 10, "categoryId": 3, "widgetTypeId": 1, "parameter": "fill time", "description": "Fill time for all valves(in minutes)", "iconCodePoint": 0, "iconFontFamily": "", "dropdownValues": "15", "value": ""}
-      ],
-      "Memory allocations": [
-        {"dealerDefinitionId": 7, "categoryId": 5, "widgetTypeId": 1, "parameter": "Programs", "description": "Total number of programs to allowed the system", "iconCodePoint": 0, "iconFontFamily": "", "dropdownValues": "100", "value": ""},
-        {"dealerDefinitionId": 8, "categoryId": 5, "widgetTypeId": 1, "parameter": "Groups", "description": "Total number of valve in group allowed in the system", "iconCodePoint": 0, "iconFontFamily": "", "dropdownValues": "99", "value": ""}
-      ]
-    }
-  };
-
   @override
   void initState() {
     super.initState();
@@ -69,16 +48,18 @@ class _MobileContentState extends State<MobileContent> {
   }
 
   Future<void> fetchData() async {
-    data = DealerDefinition.fromJson(jsondata);
-    // try {
-    //   final result = await apiService.fetchData();
-    //   setState(() {
-    //     // data = result;
-    //   });
-    // } catch (e) {
-    //   // Handle error
-    //   print('Error: $e');
-    // }
+    Map<String, Object> body = {"userId": '1', "controllerId": '1'};
+    final response =
+        await HttpService().postRequest("getUserDealerDefinition", body);
+    final jsonData = json.decode(response);
+    try {
+      setState(() {
+        data = DealerDefinition.fromJson(jsonData);
+      });
+    } catch (e) {
+      // Handle error
+      print('Error: $e');
+    }
   }
 
   @override
@@ -116,10 +97,10 @@ class _MobileContentState extends State<MobileContent> {
             key: _formKeydealer,
             child: TabBarView(
               children: [
-                buildTab('General', false,data.data?.general),
-                buildTab('Fertilizer', false,data.data?.fertilization),
-                buildTab('Valve Defaults', false,data.data?.valveDefaults),
-                buildTab('Memory', false,data.data?.memoryAllocations),
+                buildTab1('General', false, data.data?.general),
+                buildTab1('Fertilizer', false, data.data?.fertilization),
+                buildTab1('Valve Defaults', false, data.data?.valveDefaults),
+                buildTab1('Memory', false, data.data?.memoryAllocations),
               ],
             ),
           ),
@@ -127,8 +108,19 @@ class _MobileContentState extends State<MobileContent> {
         floatingActionButton: FloatingActionButton(
           onPressed: () async {
             final reqJson = data.toJson();
+            final senddata = reqJson['data'];
+            final datatest = jsonEncode(senddata);
 
-            print(reqJson);
+            Map<String, Object> body = {
+              "userId": '1',
+              "controllerId": "1",
+              "dealerDefinition": datatest,
+              "createUser": "1"
+            };
+            final response = await HttpService()
+                .postRequest("createUserDealerDefinition", body);
+            print('\n\nresponse:------------${body['dealerDefinition']}');
+            print('\n\nresponse:------------$response');
           },
           child: Icon(Icons.send),
         ),
@@ -136,10 +128,8 @@ class _MobileContentState extends State<MobileContent> {
     );
   }
 
-  Widget buildTab(String tabTitle, bool titlestatus,List<Fertilization>? Listofvalue) {
-       
-    print(Listofvalue?[0].value);
-
+  Widget buildTab1(
+      String tabTitle, bool titlestatus, List<Fertilization>? Listofvalue) {
     return Column(
       children: [
         titlestatus
@@ -174,15 +164,49 @@ class _MobileContentState extends State<MobileContent> {
                         trailing: Container(
                           color: Colors.white,
                           width: 140,
+                          // child: DropdownButton(
+                          //   items: dropdownlist.map((String items) {
+                          //     return DropdownMenuItem(
+                          //       value: items,
+                          //       child: Container(
+                          //           padding: EdgeInsets.only(left: 10),
+                          //           child: Text(items)),
+                          //     );
+                          //   }).toList(),
+                          //   onChanged: (value) {
+                          //     setState(() {
+                          //       dropdowninitialValue = value;
+                          //       print('${Listofvalue?[index].value}');
+                          //       Listofvalue?[index].value = value;
+                          //       print('vslue ${value}');
+                          //       print('${Listofvalue?[index].value}');
+                          //     });
+                          //   },
+                          //   value: dropdowninitialValue ??
+                          //       (Listofvalue?[index].value == ''
+                          //           ? dropdownlist[0].toString()
+                          //           : Listofvalue?[index].value),
+                          // ),
+
                           child: MyDropDown(
                             key: UniqueKey(),
                             itemList: dropdownlist,
-                            initialValue: dropdowninitialValue ?? (Listofvalue?[index].value == '' ? dropdownlist[0].toString() : Listofvalue?[index].value),
+                            initialValue: dropdowninitialValue ??
+                                (Listofvalue?[index].value == ''
+                                    ? dropdownlist[0].toString()
+                                    : Listofvalue?[index].value),
                             setValue: (value) {
                               setState(() {
                                 dropdowninitialValue = value;
+                                Listofvalue?[index].value = value;
                               });
                             },
+                            // onChanged: (value) {
+                            //   setState(() {
+                            //     dropdowninitialValue = value;
+                            //     Listofvalue?[index].value = value;
+                            //   });
+                            // },
                           ),
                         ),
                       ),
@@ -211,8 +235,12 @@ class _MobileContentState extends State<MobileContent> {
                         trailing: SizedBox(
                             width: 50,
                             child: CustomTextField(
-                              onChanged: (text) {},
-                              initialValue: '0',
+                              onChanged: (text) {
+                                setState(() {
+                                  Listofvalue?[index].value = text;
+                                });
+                              },
+                              initialValue: Listofvalue?[index].value ?? '0',
                               validator: (value) {
                                 if (value == null || value.isEmpty) {
                                   return 'Warranty is required';

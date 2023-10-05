@@ -6,6 +6,7 @@ class MyDropDown extends StatefulWidget {
   String? purpose;
   List<String> itemList;
   final Function(String value)? setValue;
+  // final Function(String?)? onChanged;
 
   MyDropDown({
     super.key,
@@ -13,6 +14,7 @@ class MyDropDown extends StatefulWidget {
     required this.itemList,
     this.purpose,
     this.setValue,
+    // this.onChanged,
   });
 
   @override
@@ -49,7 +51,8 @@ class _MyDropDownState extends State<MyDropDown> {
         items: widget.itemList.map((String items) {
           return DropdownMenuItem(
             value: items,
-            child: Container(padding: EdgeInsets.only(left: 10), child: Text(items)),
+            child: Container(
+                padding: EdgeInsets.only(left: 10), child: Text(items)),
           );
         }).toList(),
 
@@ -58,6 +61,7 @@ class _MyDropDownState extends State<MyDropDown> {
             widget.initialValue = newValue!;
           });
         },
+        // onChanged: widget.onChanged,
       ),
     );
   }
