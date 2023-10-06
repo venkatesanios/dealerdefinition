@@ -148,11 +148,15 @@ class _MobileContentState extends State<MobileContent> {
           child: ListView.builder(
             itemCount: Listofvalue?.length ?? 0,
             itemBuilder: (context, index) {
+              int iconcode = int.parse(Listofvalue?[index].iconCodePoint ?? "");
+              String iconfontfamily =
+                  Listofvalue?[index].iconFontFamily ?? "MaterialIcons";
               if (Listofvalue?[index].widgetTypeId == 3) {
                 final dropdownlist = StringToList().stringtolist(
                   '${Listofvalue?[index].dropdownValues}',
                   ',',
                 );
+
                 return Column(
                   children: [
                     Container(
@@ -161,11 +165,14 @@ class _MobileContentState extends State<MobileContent> {
                         //     Listofvalue?[index].iconCodePoint ?? 0xee2a,
                         //     fontFamily:
                         //         '${Listofvalue?[index].iconFontFamily}')),
+
                         title: Text('${Listofvalue?[index].parameter}'),
                         subtitle: Text(
                           'Details: ${Listofvalue?[index].description}',
                           style: const TextStyle(fontSize: 11),
                         ),
+                        leading: Icon(
+                            IconData(iconcode, fontFamily: iconfontfamily)),
                         trailing: Container(
                           color: Colors.white,
                           width: 140,
@@ -211,6 +218,8 @@ class _MobileContentState extends State<MobileContent> {
                           'Details: ${Listofvalue?[index].description}',
                           style: const TextStyle(fontSize: 11),
                         ),
+                        leading: Icon(
+                            IconData(iconcode, fontFamily: iconfontfamily)),
                         trailing: SizedBox(
                             width: 50,
                             child: CustomTextField(
@@ -254,6 +263,8 @@ class _MobileContentState extends State<MobileContent> {
                           'Details: ${Listofvalue?[index].description}',
                           style: const TextStyle(fontSize: 11),
                         ),
+                        leading: Icon(
+                            IconData(iconcode, fontFamily: iconfontfamily)),
                         trailing: MySwitch(
                           value: Listofvalue?[index].value == '1',
                           onChanged: ((value) {
