@@ -29,6 +29,7 @@ class _WebContentState extends State<WebContent> {
     Map<String, Object> body = {"userId": '1', "controllerId": '1'};
     final response =
         await HttpService().postRequest("getUserDealerDefinition", body);
+    print('response-------> $response');
     final jsonData = json.decode(response);
     try {
       setState(() {
@@ -43,7 +44,7 @@ class _WebContentState extends State<WebContent> {
   @override
   Widget build(BuildContext context) {
     final screenWidth = MediaQuery.of(context).size.width;
-    int crossAxisCount = (screenWidth / 300).floor();
+    int crossAxisCount = (screenWidth / 350).floor();
 
     return Scaffold(
       backgroundColor: Color.fromARGB(255, 223, 239, 252),
@@ -120,7 +121,33 @@ class _WebContentState extends State<WebContent> {
           };
           final response = await HttpService()
               .postRequest("createUserDealerDefinition", body);
+          final jsonData = json.decode(response);
           print('response---------------------------------$response');
+
+          showAlertDialog(BuildContext context) {
+            // set up the button
+            Widget okButton = TextButton(
+              child: Text("OK"),
+              onPressed: () {},
+            );
+
+            // set up the AlertDialog
+            AlertDialog alert = AlertDialog(
+              title: Text("$jsonData.code"),
+              content: Text("$jsonData.message"),
+              actions: [
+                okButton,
+              ],
+            );
+
+            // show the dialog
+            showDialog(
+              context: context,
+              builder: (BuildContext context) {
+                return alert;
+              },
+            );
+          }
         },
         child: Icon(Icons.send),
       ),
@@ -153,6 +180,11 @@ class _WebContentState extends State<WebContent> {
                   '${Listofvalue?[index].dropdownValues}',
                   ',',
                 );
+                int iconcode =
+                    int.parse(Listofvalue?[index].iconCodePoint ?? "");
+                String iconfontfamily =
+                    Listofvalue?[index].iconFontFamily ?? "MaterialIcons";
+
                 if (Listofvalue?[index].widgetTypeId == 3) {
                   return Column(
                     children: [
@@ -163,7 +195,8 @@ class _WebContentState extends State<WebContent> {
                         child: Padding(
                           padding: const EdgeInsets.all(8.0),
                           child: ListTile(
-                            // leading: const Icon(Icons.account_balance),
+                            leading: Icon(
+                                IconData(iconcode, fontFamily: iconfontfamily)),
                             title: Text('${Listofvalue?[index].parameter}'),
                             subtitle: Text(
                               '${Listofvalue?[index].description}',
@@ -209,7 +242,9 @@ class _WebContentState extends State<WebContent> {
                         //     ? const Color.fromARGB(255, 223, 239, 252)
                         //     : const Color.fromARGB(255, 192, 216, 252),
                         child: ListTile(
-                          // leading: const Icon(Icons.sports_baseball),
+                          // // leading: const Icon(Icons.sports_baseball),
+                          leading: Icon(
+                              IconData(iconcode, fontFamily: iconfontfamily)),
                           title: Text('${Listofvalue?[index].parameter}'),
                           subtitle: Text(
                             '${Listofvalue?[index].description}',
@@ -253,7 +288,8 @@ class _WebContentState extends State<WebContent> {
                     children: [
                       Container(
                         child: ListTile(
-                          // leading: const Icon(Icons.abc_rounded),
+                          leading: Icon(
+                              IconData(iconcode, fontFamily: iconfontfamily)),
                           title: Text('${Listofvalue?[index].parameter}'),
                           subtitle: Text(
                             '${Listofvalue?[index].description}',

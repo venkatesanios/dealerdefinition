@@ -50,8 +50,10 @@ class _MobileContentState extends State<MobileContent> {
 
   Future<void> fetchData() async {
     Map<String, Object> body = {"userId": '1', "controllerId": '1'};
+    print(body);
     final response =
         await HttpService().postRequest("getUserDealerDefinition", body);
+    print('response-------mobile---------$response');
     final jsonData = json.decode(response);
     try {
       setState(() {
