@@ -77,17 +77,17 @@ class Data {
             ? []
             : List<Fertilization>.from(
                 json["General"]!.map((x) => Fertilization.fromJson(x))),
-        fertilization: json["Fertilization"] == null
+        fertilization: json["Fertilizer"] == null
             ? []
             : List<Fertilization>.from(
-                json["Fertilization"]!.map((x) => Fertilization.fromJson(x))),
-        valveDefaults: json["Valve defaults"] == null
+                json["Fertilizer"]!.map((x) => Fertilization.fromJson(x))),
+        valveDefaults: json["Valve Default"] == null
             ? []
             : List<Fertilization>.from(
-                json["Valve defaults"]!.map((x) => Fertilization.fromJson(x))),
-        memoryAllocations: json["Memory allocations"] == null
+                json["Valve Default"]!.map((x) => Fertilization.fromJson(x))),
+        memoryAllocations: json["Memory Allocation"] == null
             ? []
-            : List<Fertilization>.from(json["Memory allocations"]!
+            : List<Fertilization>.from(json["Memory Allocation"]!
                 .map((x) => Fertilization.fromJson(x))),
       );
 
@@ -95,13 +95,13 @@ class Data {
         "General": general == null
             ? []
             : List<dynamic>.from(general!.map((x) => x.toJson())),
-        "Fertilization": fertilization == null
+        "Fertilizer": fertilization == null
             ? []
             : List<dynamic>.from(fertilization!.map((x) => x.toJson())),
-        "Valve defaults": valveDefaults == null
+        "Valve Default": valveDefaults == null
             ? []
             : List<dynamic>.from(valveDefaults!.map((x) => x.toJson())),
-        "Memory allocations": memoryAllocations == null
+        "Memory Allocation": memoryAllocations == null
             ? []
             : List<dynamic>.from(memoryAllocations!.map((x) => x.toJson())),
       };
