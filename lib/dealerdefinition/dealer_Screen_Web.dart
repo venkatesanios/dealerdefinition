@@ -2,8 +2,7 @@ import 'dart:convert';
 
 import 'package:dealer_definition/const/custom_switch.dart';
 import 'package:dealer_definition/const/custom_text.dart';
-import 'package:dealer_definition/dealerdefinition/definition_model.dart';
-import 'package:dealer_definition/dealerdefinition/definition_viewmodel.dart';
+import 'package:dealer_definition/dealerdefinition/delear_definition_model.dart';
 import 'package:dealer_definition/res/string_to_list.dart';
 import 'package:dealer_definition/service/http_services.dart';
 import 'package:flutter/material.dart';
@@ -16,8 +15,7 @@ class WebContent extends StatefulWidget {
 class _WebContentState extends State<WebContent> {
   final _formKeydealer = GlobalKey<FormState>();
   String? dropdowninitialValue;
-  final GetDatafromDefinition apiService = GetDatafromDefinition();
-  DealerDefinition data = DealerDefinition();
+  DataModel data = DataModel(categories: [], dealerDefinition: Map());
 
   @override
   void initState() {
@@ -29,11 +27,10 @@ class _WebContentState extends State<WebContent> {
     Map<String, Object> body = {"userId": '1', "controllerId": '1'};
     final response =
         await HttpService().postRequest("getUserDealerDefinition", body);
-    print('response-------> $response');
     final jsonData = json.decode(response);
     try {
       setState(() {
-        data = DealerDefinition.fromJson(jsonData);
+        data = DataModel.fromJson(jsonData);
       });
     } catch (e) {
       // Handle error
@@ -43,9 +40,11 @@ class _WebContentState extends State<WebContent> {
 
   @override
   Widget build(BuildContext context) {
+    if (data.categories.isEmpty) {
+      return Center(child: CircularProgressIndicator());
+    }
     final screenWidth = MediaQuery.of(context).size.width;
     int crossAxisCount = (screenWidth / 350).floor();
-
     return Scaffold(
       backgroundColor: Color.fromARGB(255, 223, 239, 252),
       appBar: AppBar(
@@ -62,67 +61,41 @@ class _WebContentState extends State<WebContent> {
                 crossAxisSpacing: 10,
                 childAspectRatio: 0.5),
             children: <Widget>[
-              Container(
-                decoration: BoxDecoration(
-                  color: Colors.white,
-                  borderRadius: BorderRadius.circular(10),
-                ),
-                margin: const EdgeInsets.all(5),
-                child: Center(
-                  child: buildTab('General', true, data.data?.general),
-                ),
-              ),
-              Container(
-                decoration: BoxDecoration(
-                  color: Colors.white,
-                  borderRadius: BorderRadius.circular(10),
-                ),
-                margin: const EdgeInsets.all(5),
-                child: Center(
-                  child: buildTab('Fertilizer', true, data.data?.fertilization),
-                ),
-              ),
-              Container(
-                decoration: BoxDecoration(
-                  color: Colors.white,
-                  borderRadius: BorderRadius.circular(10),
-                ),
-                margin: const EdgeInsets.all(5),
-                child: Center(
-                  child:
-                      buildTab('Valve default', true, data.data?.valveDefaults),
-                ),
-              ),
-              Container(
-                decoration: BoxDecoration(
-                  color: Colors.white,
-                  borderRadius: BorderRadius.circular(10),
-                ),
-                margin: const EdgeInsets.all(5),
-                child: Center(
-                  child: buildTab('Memory', true, data.data?.memoryAllocations),
-                ),
-              ),
+              for (int i = 0; i < data.categories.length; i++)
+                data.categories.isEmpty
+                    ? Container()
+                    : Container(
+                        decoration: BoxDecoration(
+                          color: Colors.white,
+                          borderRadius: BorderRadius.circular(10),
+                        ),
+                        margin: const EdgeInsets.all(5),
+                        child: Center(
+                          child: buildTab(
+                              '${data.categories[i].categoryName}',
+                              true,
+                              data.dealerDefinition[
+                                  '${data.categories[i].categoryId}']),
+                        ),
+                      ),
             ],
           ),
         ),
       ),
       floatingActionButton: FloatingActionButton(
         onPressed: () async {
-          final reqJson = data.toJson();
-          final senddata = reqJson['data'];
-          final datatest = jsonEncode(senddata);
+          final datadealerdef = data.dealerDefinition;
+          final senddata = jsonEncode(datadealerdef);
 
           Map<String, Object> body = {
             "userId": '1',
             "controllerId": "1",
-            "dealerDefinition": datatest,
+            "dealerDefinition": senddata,
             "createUser": "1"
           };
           final response = await HttpService()
               .postRequest("createUserDealerDefinition", body);
           final jsonData = json.decode(response);
-          print('response---------------------------------$response');
 
           showAlertDialog(BuildContext context) {
             // set up the button
@@ -154,8 +127,8 @@ class _WebContentState extends State<WebContent> {
     );
   }
 
-  Widget buildTab(
-      String tabTitle, bool titlestatus, List<Fertilization>? Listofvalue) {
+  Widget buildTab(String tabTitle, bool titlestatus,
+      List<DealerDefinitionnew>? Listofvalue) {
     return Padding(
       padding: const EdgeInsets.all(10.0),
       child: Column(
@@ -213,7 +186,7 @@ class _WebContentState extends State<WebContent> {
                               }).toList(),
                               onChanged: (value) {
                                 setState(() {
-                                  Listofvalue?[index].value = value;
+                                  Listofvalue?[index].value = value!;
                                 });
                               },
                               value: Listofvalue?[index].value == ''
@@ -238,11 +211,7 @@ class _WebContentState extends State<WebContent> {
                   return Column(
                     children: [
                       Container(
-                        // color: index.isEven
-                        //     ? const Color.fromARGB(255, 223, 239, 252)
-                        //     : const Color.fromARGB(255, 192, 216, 252),
                         child: ListTile(
-                          // // leading: const Icon(Icons.sports_baseball),
                           leading: Icon(
                               IconData(iconcode, fontFamily: iconfontfamily)),
                           title: Text('${Listofvalue?[index].parameter}'),
@@ -326,23 +295,3 @@ class _WebContentState extends State<WebContent> {
     );
   }
 }
-
-//  {
-//   "message" : "Succès ",
-//   "code" : 200,
-//   "General" : [
-// {"title" : "USA. unite","description" : "Details of use Use units","value" : "1234","valuetype" : "dropdown","dropdownlist" : []},{"title" : "USA. unite","description" : "Details of use Use units","value" : "1234","valuetype" : "dropdown","dropdownlist" : []}
-//   ],
-//     "Fertilizer" : [
-// {"title" : "USA. unite","description" : "Details of use Use units","value" : "1234","valuetype" : "dropdown","dropdownlist" : []}
-
-//   ],
-//     "Valve" : [
-// {"title" : "USA. unite","description" : "Details of use Use units","value" : "1234","valuetype" : "dropdown","dropdownlist" : []}
-
-//   ],
-//     "Memory" : [
-// {"title" : "USA. unite","description" : "Details of use Use units","value" : "1234","valuetype" : "dropdown","dropdownlist" : []}
-
-//   ]
-// }
