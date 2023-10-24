@@ -55,11 +55,15 @@ class _WebContentState extends State<WebContent> {
         child: Form(
           key: _formKeydealer,
           child: GridView(
+  physics: data.categories.length == crossAxisCount
+      ? const NeverScrollableScrollPhysics()
+      : ScrollPhysics(),
             gridDelegate: SliverGridDelegateWithFixedCrossAxisCount(
                 crossAxisCount: crossAxisCount,
                 mainAxisSpacing: 10, // Spacing between rows
                 crossAxisSpacing: 10,
                 childAspectRatio: 0.5),
+                
             children: <Widget>[
               for (int i = 0; i < data.categories.length; i++)
                 data.categories.isEmpty
@@ -145,7 +149,7 @@ class _WebContentState extends State<WebContent> {
                 )
               : Container(),
           const Divider(color: Colors.grey),
-          Flexible(
+          Expanded(
             child: ListView.builder(
               itemCount: Listofvalue?.length ?? 0,
               itemBuilder: (context, index) {
@@ -153,8 +157,7 @@ class _WebContentState extends State<WebContent> {
                   '${Listofvalue?[index].dropdownValues}',
                   ',',
                 );
-                int iconcode =
-                    int.parse(Listofvalue?[index].iconCodePoint ?? "");
+                int iconcode = int.parse(Listofvalue?[index].iconCodePoint ?? "");
                 String iconfontfamily =
                     Listofvalue?[index].iconFontFamily ?? "MaterialIcons";
 
